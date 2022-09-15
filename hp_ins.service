@@ -1,0 +1,11 @@
+[Unit]
+Description=HP Hangup to Insert keyboard filter
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/usr/local/bin
+ExecStart=/usr/local/bin/hp_ins /dev/input/event4
+
+[Install]
+WantedBy=multi-user.target

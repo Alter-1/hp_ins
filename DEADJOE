@@ -1,0 +1,31 @@
+
+*** These modified files were found in JOE when it aborted on Thu Sep 15 11:17:07 2022
+*** JOE was aborted by UNIX signal 1
+
+*** File '(Unnamed)'
+beep
+title
+
+*** File '(Unnamed)'
+root
+root
+
+*** File '/home/alter/m/work/hp_ins/install.sh'
+#/bin/sh
+  apt install libevdev-dev
+gcc -Wall `pkg-config libevdev --cflags` -o hp_ins hp_ins.c `pkg-config libevdev --libs`
+cp hp_ins /ust/local/bin
+cp hp_ins.service /etc/systemd/system
+systemctl start hp_ins
+systemctl enable hp_ins
+
+*** File '(Unnamed)'
+/etc/udev/hwdb.d/90-custom-keyboard.hwdb
+/home/alter/.anydesk/user.conf
+/home/alter/m/work/hp_ins/install.sh
+
+*** File '* Startup Log *'
+Processing '/etc/joe/jmacsrc'...
+Processing '/etc/joe/ftyperc'...
+Finished processing /etc/joe/ftyperc
+Finished processing /etc/joe/jmacsrc

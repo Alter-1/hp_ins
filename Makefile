@@ -1,8 +1,8 @@
 .PHONY: all clean
-all: heud
+all: hp_ins
 
-heud: heud.c
-	gcc -Wall $(shell pkg-config libevdev --cflags) -o heud heud.c $(shell pkg-config libevdev --libs)
+heud: hp_ins.c
+	gcc -Wall $(shell pkg-config libevdev --cflags) -o hp_ins hp_ins.c $(shell pkg-config libevdev --libs)
 
 clean:
-	@rm -f heud
+	@rm -f hp_ins
