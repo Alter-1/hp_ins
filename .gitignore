@@ -2,3 +2,8 @@
 \#*
 /pkg*
 /debian
+!/pkg2
+/pkg2/*
+!/pkg2/hp-ins-1.0-1
+/pkg2/hp-ins-1.0-1/*
+!/pkg2/hp-ins-1.0-1/*.sh
