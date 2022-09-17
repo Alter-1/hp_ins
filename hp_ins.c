@@ -118,7 +118,9 @@ int main(int argc, char **argv) {
 	int ctrl_state = 0;
 
 	int drop_meta = 0;
-	int hp_pressed = 0;
+	int hp_insert_pressed = 0;
+	int hp_num_pressed = 0;
+	int hp_break_pressed = 0;
 
 	// current (expected) state
 	int alt_pressed = 0;
@@ -240,22 +242,31 @@ int main(int argc, char **argv) {
 
                     switch(event.value) {
                         case SCAN_SCREEN:
-                            //event.code = KEY_SYSRQ;
+                            //replace with ScrollLock
                             // just drop ctrl/alt
-                            break;
+                            hp_num_pressed = !hp_num_pressed;
+                            send_key_event(virtkbd_dev,
+                     		       KEY_SCROLLLOCK,
+                     		       hp_num_pressed);
+                     	    break;
+
                         case SCAN_ANSWER:
-                            //event.code = KEY_SYSRQ; 
+                            //replace with Break
                             // just drop ctrl/alt and remember to drop Meta_L
                             drop_meta = 1;
-                            break;
+                            hp_break_pressed = !hp_break_pressed;
+                            send_key_event(virtkbd_dev,
+                     		       KEY_PAUSE,
+                     		       hp_break_pressed);
+                     	    break;
+                            
                         case SCAN_HANGUP:
                             // replace with Insert
                             // handle Press/Release
-                            hp_pressed = !hp_pressed;
+                            hp_insert_pressed = !hp_insert_pressed;
                             send_key_event(virtkbd_dev,
                      		       KEY_INSERT,
-                     		       hp_pressed);
-
+                     		       hp_insert_pressed);
                             break;
                     } // end switch()
                     continue;
