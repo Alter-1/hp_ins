@@ -5,7 +5,7 @@ Description=HP Hangup to Insert keyboard filter
 Type=simple
 User=root
 WorkingDirectory=/usr/local/bin
-ExecStart=/usr/local/bin/hp_ins /dev/input/event4
+ExecStart=/usr/local/bin/hp_ins.sh
 
 [Install]
 WantedBy=multi-user.target
