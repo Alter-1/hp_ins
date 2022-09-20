@@ -118,6 +118,8 @@ int main(int argc, char **argv) {
 	int ctrl_state = 0;
 
 	int drop_meta = 0;
+	int drop_ctrl = 0;  // Ctrl may be not sent with EV_KEY, only with EV_MSC after special key release
+	int drop_alt = 0;  // Alt may be not sent with EV_KEY, only with EV_MSC after special key release
 	int hp_insert_pressed = 0;
 	int hp_num_pressed = 0;
 	int hp_break_pressed = 0;
@@ -177,10 +179,10 @@ int main(int argc, char **argv) {
 		delta = (cur_event_time.tv_sec - prev_event_time.tv_sec)*1000000L + (cur_event_time.tv_usec - prev_event_time.tv_usec);
 
 		if(g_verbose) {
-		    printf("<%ld.%06ld> type: 0x%x code: %d value: %x (delta %d, our %d, alt/ctrl_state %x/%x (%x/%x), sz %d)\n",
+		    printf("<%ld.%06ld> type: 0x%x code: %d value: %x (delta %d, our %d, alt/ctrl_state %x/%x (%x/%x), drop_alt/ctrl %d/%d, sz %d)\n",
 		       event.time.tv_sec, event.time.tv_usec,
 		       event.type, event.code, event.value,
-		       (unsigned int)delta, is_our, alt_state, ctrl_state, alt_pressed, ctrl_pressed, sz
+		       (unsigned int)delta, is_our, alt_state, ctrl_state, alt_pressed, ctrl_pressed, drop_alt, drop_ctrl, sz
 		       );
 		}
 
@@ -248,16 +250,21 @@ int main(int argc, char **argv) {
                             send_key_event(virtkbd_dev,
                      		       KEY_SCROLLLOCK,
                      		       hp_num_pressed);
+                     	    drop_ctrl = ctrl_pressed;
+                     	    drop_alt = alt_pressed;
                      	    break;
 
                         case SCAN_ANSWER:
                             //replace with Break
                             // just drop ctrl/alt and remember to drop Meta_L
                             drop_meta = 1;
+                     	    //drop_ctrl = hp_break_pressed;
                             hp_break_pressed = !hp_break_pressed;
                             send_key_event(virtkbd_dev,
                      		       KEY_PAUSE,
                      		       hp_break_pressed);
+                     	    drop_ctrl = ctrl_pressed;
+                     	    drop_alt = alt_pressed;
                      	    break;
                             
                         case SCAN_HANGUP:
@@ -267,6 +274,8 @@ int main(int argc, char **argv) {
                             send_key_event(virtkbd_dev,
                      		       KEY_INSERT,
                      		       hp_insert_pressed);
+                     	    drop_ctrl = ctrl_pressed;
+                     	    drop_alt = alt_pressed;
                             break;
                     } // end switch()
                     continue;
@@ -274,6 +283,31 @@ int main(int argc, char **argv) {
 
 		if (event.type != EV_KEY || event.value > 1) // drop raw scan codes and repeated keys (event.value=2)
 		{
+                    if(event.type == EV_MSC && event.code == MSC_SCAN  && !(hp_insert_pressed || hp_num_pressed || hp_break_pressed)) {
+                        // special case: if we had Ctrl/Alt pressed *before* our special key, we shall NOT get 2nd release with EV_KEY. But will get EV_MSC
+        		if(event.value == KEY_LEFTCTRL) {  // 0x1d (29)
+                            if(ctrl_pressed && drop_ctrl)
+                            {
+                                ctrl_pressed = 0;
+        		        drop_ctrl = 0;
+                                send_key_event(virtkbd_dev,
+                         		       KEY_LEFTCTRL,
+                         		       0);
+                     	    }
+                     	    continue;
+        		}
+        		if(event.value == KEY_LEFTALT) {  
+                            if(alt_pressed && drop_alt)
+                            {
+                                alt_pressed = 0;
+        		        drop_alt = 0;
+                                send_key_event(virtkbd_dev,
+                         		       KEY_LEFTALT,
+                         		       0);
+                     	    }
+                     	    continue;
+        		}
+        	    }	
 		    continue;
 		}
 
@@ -287,12 +321,18 @@ int main(int argc, char **argv) {
 		    // send release only if was pressed by human
 		    if(event.code == KEY_LEFTCTRL)
 		    {
+		        if(drop_ctrl) {  // drop keyboard-generated release coming with special buttons
+		            continue;
+		        }
 		        if(!ctrl_pressed)
 		            continue;
 		        ctrl_pressed = 0;
 		    }
 		    if(event.code == KEY_LEFTALT)
 		    {
+		        if(drop_alt) {  // drop keyboard-generated release coming with special buttons
+		            continue;
+		        }
 		        if(!alt_pressed)
 		            continue;
 		        alt_pressed = 0;
